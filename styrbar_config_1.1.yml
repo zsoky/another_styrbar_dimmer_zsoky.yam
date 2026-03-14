@@ -1,7 +1,7 @@
 blueprint:
-  name: Another Styrbar Dimmer
+  name: Another Styrbar Dimmer (zsoky)
   description: |
-    **Version 1.0**   
+    **Version 1.1**   
     This blueprint integrates and controls the IKEA E2001/E2002 Styrbar remote control. 
     The primary light entity handles on/off and dim controls via the main buttons, 
     while a separate dimmable entity can be controlled using the hold functions of right 
