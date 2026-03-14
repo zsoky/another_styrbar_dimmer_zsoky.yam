@@ -167,9 +167,10 @@ action:
                   target:
                     entity_id: !input light_entity
                   data:
-                    brightness_step_pct: -10
+                    brightness_step_pct: -4
+                    transition: 0.1
                 - delay:
-                    milliseconds: 500
+                    milliseconds: 100
               until:
                 - condition: trigger
                   id: dim_stop
@@ -183,9 +184,10 @@ action:
                   target:
                     entity_id: !input light_entity
                   data:
-                    brightness_step_pct: 10
+                    brightness_step_pct: 4
+                    transition: 0.1
                 - delay:
-                    milliseconds: 500
+                    milliseconds: 100
               until:
                 - condition: trigger
                   id: dim_stop
@@ -206,9 +208,10 @@ action:
                   target:
                     entity_id: !input dimmable_entity
                   data:
-                    brightness_step_pct: -10
+                    brightness_step_pct: -4
+                    transition: 0.1
                 - delay:
-                    milliseconds: 500
+                    milliseconds: 100
               until:
                 - condition: trigger
                   id: button_left_release
@@ -239,9 +242,10 @@ action:
                   target:
                     entity_id: !input dimmable_entity
                   data:
-                    brightness_step_pct: 10
+                    brightness_step_pct: 4
+                    transition: 0.1
                 - delay:
-                    milliseconds: 500
+                    milliseconds: 100
               until:
                 - condition: trigger
                   id: button_right_release
