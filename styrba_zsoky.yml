@@ -1,0 +1,192 @@
+blueprint:
+  name: Styrbar Dimmer Zsoky Pro
+  description: |
+    **Version 1.2** IKEA Styrbar (E2001/E2002) Z2M blueprint Rodret-stílusú smooth dimminggel.
+    A fel/le gombok a fő lámpát, a bal/jobb gombok (hold) a másodlagos lámpát dimmelik finoman.
+  domain: automation
+  input:
+    light_entity:
+      name: Primary Light Entity
+      description: A fő lámpa (On/Off és Dim).
+      selector:
+        entity:
+          domain: light
+    dimmable_entity:
+      name: Dimmable Light Entity
+      description: A bal/jobb gombokkal (hold) vezérelt lámpa.
+      selector:
+        entity:
+          domain: light
+    mqtt_device:
+      name: Styrbar Remote Control
+      description: Válaszd ki a Styrbar kapcsolót.
+      selector:
+        device:
+          integration: mqtt
+    button_left_click:
+      name: Bal gomb - rövid nyomás
+      default: []
+      selector:
+        action: {}
+    button_right_click:
+      name: Jobb gomb - rövid nyomás
+      default: []
+      selector:
+        action: {}
+
+trigger:
+  - platform: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: 'on'
+    id: light_on
+  - platform: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: 'off'
+    id: light_off
+  - platform: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: brightness_move_down
+    id: dim_down
+  - platform: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: brightness_move_up
+    id: dim_up
+  - platform: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: arrow_left_click
+    id: button_left_click
+  - platform: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: arrow_left_hold
+    id: button_left_hold
+  - platform: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: arrow_right_click
+    id: button_right_click
+  - platform: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: arrow_right_hold
+    id: button_right_hold
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: light_on
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: !input light_entity
+      - conditions:
+          - condition: trigger
+            id: light_off
+        sequence:
+          - service: light.turn_off
+            target:
+              entity_id: !input light_entity
+
+      # FŐ LÁMPA DIM FEL
+      - conditions:
+          - condition: trigger
+            id: dim_up
+        sequence:
+          - repeat:
+              while:
+                - condition: trigger
+                  id: dim_up
+              sequence:
+                - parallel:
+                    - service: light.turn_on
+                      target:
+                        entity_id: !input light_entity
+                      data:
+                        brightness_step_pct: 4
+                        transition: 0.1
+                    - delay: 0.1
+
+      # FŐ LÁMPA DIM LE
+      - conditions:
+          - condition: trigger
+            id: dim_down
+        sequence:
+          - repeat:
+              while:
+                - condition: trigger
+                  id: dim_down
+              sequence:
+                - parallel:
+                    - service: light.turn_on
+                      target:
+                        entity_id: !input light_entity
+                      data:
+                        brightness_step_pct: -4
+                        transition: 0.1
+                    - delay: 0.1
+
+      # BAL GOMB CLICK
+      - conditions:
+          - condition: trigger
+            id: button_left_click
+        sequence: !input button_left_click
+
+      # BAL GOMB HOLD (Másodlagos lámpa dim le)
+      - conditions:
+          - condition: trigger
+            id: button_left_hold
+        sequence:
+          - repeat:
+              while:
+                - condition: trigger
+                  id: button_left_hold
+              sequence:
+                - parallel:
+                    - service: light.turn_on
+                      target:
+                        entity_id: !input dimmable_entity
+                      data:
+                        brightness_step_pct: -4
+                        transition: 0.1
+                    - delay: 0.1
+
+      # JOBB GOMB CLICK
+      - conditions:
+          - condition: trigger
+            id: button_right_click
+        sequence: !input button_right_click
+
+      # JOBB GOMB HOLD (Másodlagos lámpa dim fel)
+      - conditions:
+          - condition: trigger
+            id: button_right_hold
+        sequence:
+          - repeat:
+              while:
+                - condition: trigger
+                  id: button_right_hold
+              sequence:
+                - parallel:
+                    - service: light.turn_on
+                      target:
+                        entity_id: !input dimmable_entity
+                      data:
+                        brightness_step_pct: 4
+                        transition: 0.1
+                    - delay: 0.1
+
+mode: restart
